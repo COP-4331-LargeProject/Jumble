@@ -4,6 +4,8 @@ document.querySelector('#register-btn').addEventListener('click', () => { //matc
 
   const email_input = document.querySelector('#email') //match jsx
   const pass_input = document.querySelector('#password') //match jsx
+  const first_name_input = document.querySelector('#first_name') //match jsx
+  const last_name_input = document.querySelector('#last_name') //match jsx
   const register_error = document.querySelector('#error') //optional
 
   fetch('/api/register', { //match api
@@ -14,6 +16,8 @@ document.querySelector('#register-btn').addEventListener('click', () => { //matc
     body: JSON.stringify({
       email: email_input.value, //match api
       password: pass_input.value //match api
+      first_name: first_name_input.value, //match api
+      last_name: last_name_input.value //match api
     })
   })
 
