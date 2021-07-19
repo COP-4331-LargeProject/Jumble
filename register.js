@@ -24,7 +24,7 @@ document.querySelector('#register-btn').addEventListener('click', () => { //matc
     .then(res => {
       if (res.ok) {
         console.log('Success')
-        window.location.replace('/login')
+        window.location.replace('/verification')
       } else {
         console.log('Error')
         login_error.style.display = 'block' //optional
