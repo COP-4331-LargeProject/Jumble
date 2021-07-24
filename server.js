@@ -63,7 +63,34 @@ const findGenreFeatures = function(id, db, callback)
     });
   }*/ 
   
-app.get('/api/testing', async (req, res) =>
+  
+app.post('/api/delete', async (req, res, next) =>
+{
+  client.connect (function(err) 
+  {
+    assert.equal(null, err);
+    
+    var ObjectId = require('mongodb').ObjectID;
+    
+    console.log("Connected successfully to server"); 
+    const db = client.db(dbName);  
+
+    if (err) { throw err; }
+    else {
+     var collection = db.collection("users");
+     collection.deleteMany({email: "pleaseeeeeeee"},  function(err,doc) {
+       if (err) { throw err; }
+       else { 
+         console.log("Deleted"); 
+         res.send("Deleted");
+       }
+     });  
+   } 
+  });
+});
+  
+  
+app.post('/api/testing', async (req, res) =>
 {
 
   console.log(req.cookies);
@@ -73,19 +100,21 @@ app.get('/api/testing', async (req, res) =>
     assert.equal(null, err);
     console.log("Connected successfully to server"); 
     const db = client.db(dbName);  
+    
+    const { search } = req.body;
 
-    find(db, function() 
+    find(search, db, function() 
     {
       client.close();
     }); 
   });
     
-  const find = function(db)
+  const find = function(search, db)
   {
       var ObjectId = require('mongodb').ObjectID;
   
       // Find some documents
-      db.collection('users').find().toArray(function(err, docs)
+      db.collection(search).find().toArray(function(err, docs)
       {
 
         console.log("Found the following records");
@@ -94,55 +123,6 @@ app.get('/api/testing', async (req, res) =>
     }
 });
 
-//LOGIN API
-
-app.post('/api/login', async (req, res, next) => {  
-    // incoming: email, password  
-    // outgoing: id, firstName, lastName, error  
-    var error = '';  
-
-    client.connect(function(err)
-    { 
-      assert.equal(null, err);
-
-      const { login, password } = req.body;
-
-      const db = client.db(dbName);  
-      const results = await;
-
-      db.collection('Users').find({Email:email,Password:password}).toArray();
-
-      var id = -1;  
-      var fn = '';  
-      var ln = '';  
-      
-      if( results.length > 0 )  
-      {    
-          id = results[0].UserId;    
-          fn = results[0].FirstName;    
-          ln = results[0].LastName;  
-      }
-
-    /*
-      if( login.toLowerCase() == 'rickl' && password == 'COP4331' )  
-      {    
-          id = 1;    
-          fn = 'Rick';    
-          ln = 'Leinecker';  
-      }  
-      else  
-      {    
-          error = 'Invalid user name/password';  
-      }*/
-      
-      
-      //check to see if id is correct in DB
-      var ret = { id:id, firstName:fn, lastName:ln, error:''};  
-      res.status(200).json(ret);
-
-      client.close();
-    });
-});
 
 ////Register API
 
@@ -178,9 +158,7 @@ app.post('/api/register', async (req, res) =>
         console.log(results.length);
 
         if(results.length > 0){
-          ret = { error: "Email is already in use." };
-          console.log(ret);
-          res.status(200).json(ret);
+          res.status(401).json({errorMessage: "Email is already in use"});
         }
 
         else{
@@ -204,7 +182,7 @@ app.post('/api/register', async (req, res) =>
               //ret = { error: error, id: results[0]._id};
               //console.log(ret);
 
-              res.cookie("_id", results[0]._id, {expire: 86400000 + Date.now()});
+              res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
               res.send("Data added to cookie");
               
             });
@@ -213,12 +191,76 @@ app.post('/api/register', async (req, res) =>
     }
 });
 
+//LOGIN API
+
+app.post('/api/login', async (req, res) =>     
+ {      
+     client.connect (function(err)
+  {
+    assert.equal(null, err);
+    console.log("Connected successfully to server");
+    const db = client.db(dbName); 
+
+    // incoming: email, password 
+    // outgoing: error
+
+    const { email, password } = req.body; 
+
+     if ( !email || !password ) {
+            return res.status(400).json({ errorMessage: "Please enter all required fields."});
+        }
+
+    //Check to see if email exists.
+    find(password, email, db, function() 
+    {
+      client.close();
+    });
+  });
+    
+  const find = async function(password, email, db)
+  {
+      var ret = "";
+      var id = "";
+
+      // Find some documents
+      const user = db.collection('users').find({"email": email}).toArray(async function(err, results)
+      {
+        console.log("Found the following records");
+
+        if(results.length > 0){
+            
+          pass = results[0].passwordHash;
+          const cmp = await bcrypt.compare(req.body.password, pass);
+            if (cmp) {
+        //   ..... further code to maintain authentication like jwt or sessions
+                
+            // res.send("Auth Successful");
+
+              res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
+              res.send("Data added to cookie");
+            } else {
+            
+                return res.status(401).json({errorMessage: "Wrong email and password"});
+            }  
+          //res.status(200).json(ret);
+        }
+        else{
+            return res.status(401).json({errorMessage: "Wrong email and password"});
+        }
+
+      });
+    
+    }
+    
+});
+
+
 
 
 ////Logout API
 app.post('/api/logout', (req, res) =>
 {
-  res.clearCookie('_id');
+  res.clearCookie('user_id');
   console.log("User logged out")
   res.sendStatus(200);
 });
@@ -243,7 +285,7 @@ var generateRandomString = function(length) {
 var stateKey = 'spotify_auth_state';
 
 app.get('/spotify', function(req, res) {
-
+    
     var state = generateRandomString(16);
     res.cookie(stateKey, state);
   
@@ -313,16 +355,31 @@ app.get('/spotify', function(req, res) {
 
             else {
              var collection = db.collection("users");
-
-             //Update Access Token and Refresh Token using userID cookie
-             collection.findOneAndUpdate({_id: ObjectId(userID)}, {$set: {"access_token": access_token, "refresh_token": refresh_token }},  function(err,doc) {
+             
+             console.log(req.cookies);
+             console.log("Before redirect"); 
+             
+             
+             //-------------------------------------------------------COOKIE PROBLEM HERE---------------------------------------------------------------------
+             //I'm uncetrain about how to pull a cookie into here, every time I try I get cookies from spotify, don't know how to pull them from our site.
+             
+             
+             //Store access and refresh token, finding use by using _id cookie
+             collection.findOneAndUpdate({user_id: ObjectId("60fabb28c25a6e8275697eb9")}, {$set: {"access_token": access_token, "refresh_token": refresh_token }},  function(err,doc) {
                if (err) { 
+
+
                  throw err; 
                 }
 
                else { 
                   console.log("Updated"); 
+                  
+                  
+            //-------------------------------------------------------COOKIE PROBLEM HERE---------------------------------------------------------------------
+            //These are not sending cookies back to our Front End
 
+                  //Send Access and refresh token to front end as cookies
                   res.cookie("access_token", access_token, {expire: 86400000 + Date.now()});
                   res.cookie("refresh_token", refresh_token, {expire: 86400000 + Date.now()});
                   res.send("Data added to access and refresh token cookies")
@@ -402,7 +459,7 @@ app.get('/spotify', function(req, res) {
              var collection = db.collection("users");
 
              //Update Access Token
-             collection.findOneAndUpdate({_id: ObjectId(userID)}, {$set: {"access_token": access_token}},  function(err,doc) {
+             collection.findOneAndUpdate({user_id: ObjectId(userID)}, {$set: {"access_token": access_token}},  function(err,doc) {
                if (err) { 
                  throw err; 
                 }
@@ -419,6 +476,73 @@ app.get('/spotify', function(req, res) {
         }
       });
     });
+    
+  ////Genre API
+  
+  app.post('/api/genre', async (req, res) => 
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server");
+      const db = client.db(dbName); 
+  
+      // incoming: user_id, genre_id, name, sample_artists, sample_tracks
+      // outgoing: unknown
+  
+      const { genre_id, name, sample_artists, sample_tracks } = req.body;
+      var user_id = req.cookies.user_id;
+  
+      insert(genre_id, name, sample_artists, sample_tracks, db, user_id, function(){
+        client.close();
+      });
+  
+    });
+  
+    const insert = function(genre_id, name, sample_artists, sample_tracks, db, user_id){
+  
+      // Find if the genre exists for the user
+      db.collection('genres').find({"genre_id": genre_id, "user_id":user_id }).toArray(function(err, results)
+      {
+      
+        if(results.length > 0){
+  
+          console.log("The genre already exists for this user");
+  
+          db.collection('genres').findOneAndUpdate({"genre_id": genre_id, "user_id":user_id }, {$push: {"sample_artists": sample_artists, "sample_tracks": sample_tracks}},  function(err,doc) {
+            if (err) { 
+              throw err; 
+            }
+  
+            else { 
+              console.log("Updated"); 
+              res.status(200).json("Tracks has been added to user's genre"); 
+            }
+          });  
+  
+        }
+  
+        else{
+  
+          console.log("The genre does not exist for the user");
+  
+          //Create the genre
+          const newGenre = { user_id: user_id, genre_id: genre_id, name: name, sample_artists: sample_artists, sample_tracks: sample_tracks};
+  
+          //Insert newGenre
+          try{
+            db.collection('genres').insertOne(newGenre);
+          }
+          catch(e){
+            error = e.toString(); 
+          }
+  
+          res.status(200).json("Genre has been added for user");
+  
+        }
+      });
+    }
+   });
 
 
 
