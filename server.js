@@ -78,7 +78,7 @@ app.post('/api/delete', async (req, res, next) =>
     if (err) { throw err; }
     else {
      var collection = db.collection("users");
-     collection.deleteMany({email: "pleaseeeeeeee"},  function(err,doc) {
+     collection.deleteMany({first_name: "test3"},  function(err,doc) {
        if (err) { throw err; }
        else { 
          console.log("Deleted"); 
@@ -135,7 +135,7 @@ app.post('/api/register', async (req, res) =>
     const db = client.db(dbName); 
 
     // incoming: email, password 
-    // outgoing: error
+    // outgoing: error, user_id cookie
 
     const { email, password, first_name, last_name } = req.body; 
 
@@ -183,7 +183,7 @@ app.post('/api/register', async (req, res) =>
               //console.log(ret);
 
               res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
-              res.send("Data added to cookie");
+              res.status(200).json("Data added to cookie");
               
             });
         }
@@ -202,7 +202,7 @@ app.post('/api/login', async (req, res) =>
     const db = client.db(dbName); 
 
     // incoming: email, password 
-    // outgoing: error
+    // outgoing: error, user_id cookie
 
     const { email, password } = req.body; 
 
@@ -267,10 +267,10 @@ app.post('/api/logout', (req, res) =>
 
 
 
-/////Spotify API
+///// Spotify API
 var client_id = 'fd29bb9cc430409d804a2bac1ddc8b9d'; // Your client id
 var client_secret = 'e07764368ae74bd09d8a61f64bc2c25f'; // Your secret
-var redirect_uri = 'http://143.244.165.192:5000/callback/'; // Your redirect uri
+var redirect_uri = 'http://jumble.site/callback'; // Your redirect uri
 
 var generateRandomString = function(length) {
   var text = '';
@@ -476,6 +476,34 @@ app.get('/spotify', function(req, res) {
         }
       });
     });
+  
+  app.get('/spotify/search', async (req, res) =>
+  {
+    console.log(req.cookies);
+    user_id = req.cookies.user_id;
+
+    var searchObject = {
+      url: 'https://api.spotify.com/v1/search',
+      headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
+      form: {
+        q: 'ocean man',
+        type: 'track',
+        market: 'US',
+        limit: 1
+      },
+      json: true
+    };
+
+    request.get(searchObject, function(error, response, body) {
+      if (!error && response.statusCode === 200) {
+        var name = body.tracks.items[0].name;
+
+        res.status(200).json(name);
+      }
+      else
+      res.status(500).json("Error. Could not GET https://api.spotify.com/v1/search");
+    });
+  });
     
   ////Genre API
   
@@ -488,7 +516,7 @@ app.get('/spotify', function(req, res) {
       const db = client.db(dbName); 
   
       // incoming: user_id, genre_id, name, sample_artists, sample_tracks
-      // outgoing: unknown
+      // outgoing: none
   
       const { genre_id, name, sample_artists, sample_tracks } = req.body;
       var user_id = req.cookies.user_id;
@@ -500,25 +528,27 @@ app.get('/spotify', function(req, res) {
     });
   
     const insert = function(genre_id, name, sample_artists, sample_tracks, db, user_id){
+    
+    var ObjectId = require('mongodb').ObjectID;
   
       // Find if the genre exists for the user
-      db.collection('genres').find({"genre_id": genre_id, "user_id":user_id }).toArray(function(err, results)
+      db.collection('genres').find({"genre_id": genre_id, "user_id":ObjectId(user_id) }).toArray(function(err, results)
       {
       
         if(results.length > 0){
   
           console.log("The genre already exists for this user");
   
-          db.collection('genres').findOneAndUpdate({"genre_id": genre_id, "user_id":user_id }, {$push: {"sample_artists": sample_artists, "sample_tracks": sample_tracks}},  function(err,doc) {
-            if (err) { 
-              throw err; 
-            }
+          //db.collection('genres').findOneAndUpdate({"genre_id": genre_id, "user_id":ObjectId(user_id) }, {$push: {"sample_artists": sample_artists, "sample_tracks": sample_tracks}},  function(err,doc) {
+            //if (err) { 
+            //  throw err; 
+            //}
   
-            else { 
-              console.log("Updated"); 
-              res.status(200).json("Tracks has been added to user's genre"); 
-            }
-          });  
+            //else { 
+            //  console.log("Updated"); 
+            // res.status(200).json("Tracks has been added to user's genre"); 
+            //}
+          //});  
   
         }
   
@@ -527,7 +557,7 @@ app.get('/spotify', function(req, res) {
           console.log("The genre does not exist for the user");
   
           //Create the genre
-          const newGenre = { user_id: user_id, genre_id: genre_id, name: name, sample_artists: sample_artists, sample_tracks: sample_tracks};
+          const newGenre = { user_id: ObjectId(user_id), genre_id: genre_id, name: name, sample_artists: sample_artists, sample_tracks: sample_tracks};
   
           //Insert newGenre
           try{
@@ -543,7 +573,157 @@ app.get('/spotify', function(req, res) {
       });
     }
    });
+   
+     //List Users Liked Tracks
+  app.get('/api/liked_tracks', async (req, res) =>
+  {
+  
+    console.log(req.cookies);
+    user_id = req.cookies.user_id;
+  
+    client.connect (function(err) 
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server"); 
+      const db = client.db(dbName);  
+  
+      find(user_id, db, function() 
+      {
+        client.close();
+      }); 
+    });
+      
+    const find = function(user_id, db)
+    {
+        var ObjectId = require('mongodb').ObjectID;
+    
+        // Find Users Liked Tracks
+        db.collection('user_liked_tracks').find({"user_id": ObjectId(user_id)}).toArray(function(err, docs)
+        {
+  
+          var ret = docs;
+          res.status(200).json(ret);
+        });
+      }
+  });
+  
+  //List Users Disliked Tracks
+  app.get('/api/disliked_tracks', async (req, res) =>
+  {
+  
+    console.log(req.cookies);
+    user_id = req.cookies.user_id;
+  
+    client.connect (function(err) 
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server"); 
+      const db = client.db(dbName);  
+  
+      find(user_id, db, function() 
+      {
+        client.close();
+      }); 
+    });
+      
+    const find = function(user_id, db)
+    {
+        var ObjectId = require('mongodb').ObjectID;
+    
+        // Find Users Liked Tracks
+        db.collection('user_disliked_tracks').find({"user_id": ObjectId(user_id)}).toArray(function(err, docs)
+        {
+  
+          var ret = docs;
+          res.status(200).json(ret);
+        });
+      }
+  });
+  
+    ////Dislike API
+  
+  app.post('/api/dislike', async (req, res) => 
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server");
+      const db = client.db(dbName); 
 
+      // incoming: track_id
+      // outgoing: none
+
+      const { track_id } = req.body;
+      var user_id = req.cookies.user_id;
+
+      insert(track_id, db, user_id, function(){
+        client.close();
+      });
+    });
+
+    const insert = function(track_id, db, user_id){
+
+      var ObjectId = require('mongodb').ObjectID;
+
+      //Create new disliked track
+      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id };
+
+      //Add disliked track
+       try{
+        db.collection('user_disliked_tracks ').insertOne(dislikedtrack);
+      }
+      catch(e){
+        error = e.toString(); 
+      }
+
+      res.status(200).json("Track was added to dislikes");
+
+    }
+
+  });
+  
+  
+   ////Like API
+  
+  app.post('/api/like', async (req, res) => 
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server");
+      const db = client.db(dbName); 
+
+      // incoming: track_id, name, genre
+      // outgoing: unknown
+
+      const { track_id, name, genre } = req.body;
+      var user_id = req.cookies.user_id;
+
+      insert(track_id, name, genre, db, user_id, function(){
+        client.close();
+      });
+    });
+
+    const insert = function(track_id, name, genre, db, user_id){
+
+      var ObjectId = require('mongodb').ObjectID;
+
+      //Create new liked track
+      const likedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:name, genre:genre, };
+
+      //Insert liked track
+       try{
+        db.collection('user_liked_tracks ').insertOne(likedtrack);
+      }
+      catch(e){
+        error = e.toString(); 
+      }
+
+      res.status(200).json("Track was added to likes");
+
+    }
+
+  });
 
 
 app.get('/', function (req, res) {
