@@ -1,0 +1,387 @@
+@import url("https://fonts.googleapis.com/css2?family=Roboto:wght@100&display=swap");
+
+@font-face {
+  font-family: "Moon 2.0 Regular";
+  font-style: normal;
+  font-weight: normal;
+  src: local("Moon 2.0 Regular"),
+    url("./Assets/Fonts/moon-20-cufonfonts-webfont/Moon2.0-Regular.woff")
+      format("woff");
+}
+
+@font-face {
+  font-family: "Moon 2.0 Bold";
+  font-style: normal;
+  font-weight: normal;
+  src: local("Moon 2.0 Bold"),
+    url("./Assets/Fonts/moon-20-cufonfonts-webfont/Moon2.0-Bold.woff")
+      format("woff");
+}
+
+@font-face {
+  font-family: "Moon 2.0 Light";
+  font-style: normal;
+  font-weight: normal;
+  src: local("Moon 2.0 Light"),
+    url("./Assets/Fonts/moon-20-cufonfonts-webfont/Moon2.0-Light.woff")
+      format("woff");
+}
+
+#loginDiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 15%;
+  background: #605cff21 0% 0% no-repeat padding-box;
+  padding: 4% 2% 4% 2%;
+  border-radius: 20px;
+  opacity: 1;
+}
+
+.loginTextBoxes {
+  padding: 10px;
+  margin: 5px;
+  top: 579px;
+  left: 1177px;
+  width: 468px;
+  height: 52px;
+  border: 1px solid #707070;
+  border-radius: 8px;
+  font-size: 20px;
+  font-size: 30px;
+  font-family: "Roboto";
+}
+
+#loginButton {
+  font-family: "Roboto";
+  color: white;
+  background: #605cff 0% 0% no-repeat padding-box;
+  top: 579px;
+  left: 1177px;
+  width: 468px;
+  height: 52px;
+  border-radius: 11px;
+  border: 0;
+  margin: 7;
+}
+
+#loginBody {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+}
+
+#forgotPasswordText {
+  justify-content: right;
+  align-items: flex-end;
+  font: normal normal bold 19px/25px Roboto;
+  letter-spacing: 0px;
+  color: #163f74;
+}
+
+#title {
+  display: flex;
+  color: #8595c9;
+  font-family: "Roboto";
+  font-style: bold;
+  font-size: 40px;
+  align-self: center;
+  border-radius: 20px;
+  opacity: 70%;
+  padding-left: 10px;
+}
+
+#inner-title {
+  font-family: "Moon 2.0 Regular";
+  font-size: 32px;
+  color: black;
+  vertical-align: auto;
+  align-self: center;
+}
+
+.videoTag {
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  left: 50%;
+  height: 100%;
+  top: 50%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+}
+
+#signUpBody {
+  display: flex;
+  flex-direction: column;
+  height: auto;
+  width: auto;
+  padding-top: 5%;
+  align-items: center;
+  justify-content: center;
+  opacity: 70%;
+}
+
+#signUpTextInput {
+  border-width: 1;
+  border-color: "black";
+  background-color: "white";
+  padding: 15;
+  border-radius: 10;
+  margin: 8;
+  margin-left: 20;
+  margin-right: 20;
+}
+
+#signUpText2 {
+  font: normal normal 300 19px/25px Roboto;
+}
+
+#signUpButton {
+  font-family: "Roboto";
+  color: white;
+  align-self: center !important;
+  background: #605cff 0% 0% no-repeat padding-box;
+  top: 579px;
+  left: 1177px;
+  width: 468px;
+  height: 52px;
+  border-radius: 11px;
+  border-radius: 10px;
+  border: 0;
+  margin: 7;
+}
+
+#signUpButtonText {
+  font: normal normal 300 19px/25px Roboto;
+  letter-spacing: 0px;
+  color: #000000;
+}
+
+#signUpLink {
+  text-decoration: "none";
+  color: #163f74 !important;
+}
+
+#signUpText {
+  font-family: "Moon 2.0 Regular";
+  color: black;
+  vertical-align: auto;
+  font-size: 52px;
+  align-self: center;
+}
+
+#navBar {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  border-radius: 10px;
+  background: #dbe9f7;
+  color: #8595c9;
+  opacity: 80%;
+  font-family: "Roboto";
+  font-size: 20px;
+  padding: 0%;
+}
+
+.navItems {
+  width: 30%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  list-style: none;
+  font-family: "Roboto";
+}
+
+.welcomeText {
+  font-family: "Moon 2.0 Bold";
+  font-size: 127px;
+  color: #605cff;
+  order: 1;
+  margin-top: 5%;
+}
+
+#welcomeSubText {
+  font-family: "Roboto";
+  color: #000000;
+  margin-top: 0;
+  padding-top: 0;
+  order: 2;
+}
+
+#welcomeDiv {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  color: #8595c9;
+  font-size: 25px;
+}
+
+#resetButton {
+  font-family: "Roboto";
+  color: white;
+  background: #605cff 0% 0% no-repeat padding-box;
+  top: 579px;
+  left: 1177px;
+  width: 468px;
+  height: 52px;
+  border-radius: 11px;
+  border: 0;
+  margin: 7;
+}
+
+#logoutButton {
+  text-align: right;
+  margin-top: 7%;
+  margin-right: 17%;
+  font: normal normal bold 25px/30px "Moon 2.0 Bold";
+  letter-spacing: 0px;
+  color: #000000;
+  opacity: 1;
+}
+
+#loginBackground {
+  background: url("./Assets/Images/LoginBackgroundDesktop.jpg");
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  left: 50%;
+  height: 100%;
+  top: 50%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+#dashboardBackground {
+  background: url("./Assets/Images/Dashboard_Background.jpg");
+  position: absolute;
+  z-index: -1;
+  width: 100%;
+  left: 50%;
+  height: 100%;
+  top: 50%;
+  object-fit: cover;
+  transform: translate(-50%, -50%);
+  background-position: center;
+  background-repeat: no-repeat;
+  background-size: cover;
+}
+
+.imageBanner {
+  text-align: center;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+  margin-top: 2%;
+  margin-left: 26%;
+  width: 55%;
+  height: 55%;
+}
+
+#exploreCat {
+  font: normal normal bold 26px/34px "Roboto";
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  margin-left: -34%;
+  letter-spacing: 0px;
+  color: #000000;
+  opacity: 1;
+}
+
+#categoryList {
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin-left: -22%;
+}
+
+#playlistDiv {
+  display: flex;
+  flex-direction: row;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  margin-left: -25%;
+  margin-top: 1%;
+}
+
+.playlistImages {
+  margin-left: 0.5%;
+  margin-right: 0.5%;
+}
+
+#listItems {
+  padding: 10px;
+  margin-left: 0.5%;
+  margin-right: 0.5%;
+  background: #ffffff 0% 0% no-repeat padding-box;
+  box-shadow: 0px 0px 14px #00000029;
+  border-radius: 30px;
+}
+
+#playlistHeader {
+  font: normal normal bold 26px/34px "Roboto";
+  font-weight: bold;
+  text-align: center;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  margin-left: -41%;
+  letter-spacing: 0px;
+  color: #000000;
+  opacity: 1;
+}
+
+.trackImage {
+  border-radius: 20px;
+  width: 30%;
+  height: 30%;
+}
+
+#trackDiv {
+  text-align: center;
+  display: block;
+  justify-content: center;
+  align-items: center;
+  margin: auto;
+}
+
+.popup {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100vh;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.popup-inner {
+  border-radius: 46px;
+  padding: 32px;
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  background-color: white;
+  box-shadow: 0px 0px 14px #00000029;
+}
+
+.popup-inner .close-btn {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  border: 0px #000000;
+  border-radius: 30%;
+}
