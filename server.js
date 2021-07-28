@@ -4,7 +4,8 @@ var express = require('express'); // Express web server framework
 var request = require('request'); // "Request" library
 var cors = require('cors');
 var querystring = require('querystring');
-const bcrypt = require('bcryptjs')
+const { curly } = require("node-libcurl");
+const bcrypt = require('bcryptjs');
 
 const app = express();
 var cookieParser = require("cookie-parser");
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 5000;
 
 app.set('port', (process.env.PORT || 5000));
 
+var router = express.Router();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
@@ -23,7 +25,7 @@ app.use(express.urlencoded({ extended: true }));
 const MongoClient = require('mongodb').MongoClient;
 const assert = require('assert');
 
-const url = "mongodb+srv://prod_myers100:mJ8g1ETxd5JbJepV@cluster0.aejsd.mongodb.net/test?retryWrites=true&w=majority&useUnifiedTopology=true";
+const url = "mongodb+srv://prod_myers100:mJ8g1ETxd5JbJepV@cluster0.aejsd.mongodb.net/music?retryWrites=true&w=majority&useUnifiedTopology=true";
 
 // Database Name
 const dbName = 'music';
@@ -209,7 +211,7 @@ app.post('/api/login', async (req, res) =>
      if ( !email || !password ) {
             return res.status(400).json({ errorMessage: "Please enter all required fields."});
         }
-
+    
     //Check to see if email exists.
     find(password, email, db, function() 
     {
@@ -268,9 +270,9 @@ app.post('/api/logout', (req, res) =>
 
 
 ///// Spotify API
-var client_id = 'fd29bb9cc430409d804a2bac1ddc8b9d'; // Your client id
-var client_secret = 'e07764368ae74bd09d8a61f64bc2c25f'; // Your secret
-var redirect_uri = 'http://jumble.site/callback'; // Your redirect uri
+var client_id = 'a5fd338e87224bc0a4f0b1551e17d95e'; // Your client id
+var client_secret = '036c97a0173e4e818a0562d8ac986eef'; // Your secret
+var redirect_uri = 'http://jumble.site:5000/callback/'; // Your redirect uri
 
 var generateRandomString = function(length) {
   var text = '';
@@ -311,7 +313,9 @@ app.get('/spotify', function(req, res) {
     var state = req.query.state || null;
     var storedState = req.cookies ? req.cookies[stateKey] : null;
   
-    if (state === null || state !== storedState) {
+    if (state === null || state !== storedState)
+    {
+      console.log('API /callback error: state_mismatch');
       res.redirect('/#' +
         querystring.stringify({
           error: 'state_mismatch'
@@ -477,32 +481,131 @@ app.get('/spotify', function(req, res) {
       });
     });
   
-  app.get('/spotify/search', async (req, res) =>
+  // Spotify Search
+  /*
+    @params
+      type: string. Must be exactly "track" or "artist"
+      query: string
+      access_token: provided by cookie
+  */
+  app.get('/spotify/search/:type/:query', async (req, res) =>
   {
-    console.log(req.cookies);
-    user_id = req.cookies.user_id;
+    // See if this was sent from a non-user
+    if(req.cookies.access_token == null)
+    {
+      res.status(401).json("Error not token passed.");
+      return;
+    }
+    
+    //var query = 'ocean man';
+    //var type = 'track';
 
-    var searchObject = {
-      url: 'https://api.spotify.com/v1/search',
-      headers: { 'Authorization': 'Basic ' + (new Buffer(client_id + ':' + client_secret).toString('base64')) },
-      form: {
-        q: 'ocean man',
-        type: 'track',
-        market: 'US',
-        limit: 1
-      },
-      json: true
-    };
-
-    request.get(searchObject, function(error, response, body) {
-      if (!error && response.statusCode === 200) {
-        var name = body.tracks.items[0].name;
-
-        res.status(200).json(name);
-      }
-      else
-      res.status(500).json("Error. Could not GET https://api.spotify.com/v1/search");
+    if(req.params.query == null || req.params.type == null)
+    {
+      res.status(400).json("No search query");
+      return;
+    }
+    
+    var getFields = querystring.stringify({
+      q: req.params.query,
+      type: req.params.type,
+      market: 'US',
+      limit: 1
     });
+    
+    const { statusCode, data } = await curly.get('https://api.spotify.com/v1/search?' + getFields, {
+      httpHeader: [
+        'Content-Type: application/json',
+        'Accept: application/json',
+        'Authorization: Bearer ' + req.cookies.access_token
+      ],
+    });
+    
+    if(statusCode != 200)
+    {
+      res.status(400).json("Error. Could not access spotify");
+      return;
+    }
+    
+    res.status(200).json(data.tracks.items[0]);
+  });
+
+  // Spotify Recommendation
+  /*
+    @params
+      user_id, ObjectID
+      genre_id: string
+      access_token: provided by cookie
+  */
+  app.get('/spotify/recommendation/:user_id/:genre_id', async (req, res) =>
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to mongoDB server.");
+      const db = client.db(dbName);
+
+      // incoming: user_id, genre_id
+      // outgoing: sample_artist, sample_track
+
+      //var access_token = "BQD9OGyFCWuCLtumh8Zv9HpfI7UoTQ8pjjvv-4DroREUDIczSwB0LNtKs-GSXtjfA5i2zoggNofASlF06fuEq-6NhWdQQuAl_j6_DmrqpPz_wVeX_FkPl1dSFFhzlUVYw65CRW3KmbOloSeuqXD-qT7ixe6-V4samw";
+      if(req.params.user_id == null || req.params.genre_id == null)
+        res.status(400).json("Error: user_id or genre_id was empty.");
+
+      // Make sure the access token is present
+      if(req.cookies.access_token == null)
+      {
+        res.status(401).json("Error not token passed.");
+        return;
+      }
+
+      find(req.params.user_id, req.params.genre_id, db, function()
+      {
+        client.close();
+      });
+    });
+
+    const find = function(user_id, genre_id, db)
+    {
+      var ObjectId = require('mongodb').ObjectID;
+      user_id = ObjectId(user_id);
+      
+      db.collection('genres').find({"genre_id": genre_id, "user_id":user_id }).toArray(function(err, results)
+      {
+        // Returns 200 and the documents
+        if(results.length > 0)
+        {
+          var getFields = querystring.stringify({
+            seed_artists: results[0].sample_artists,
+            seed_genres: results[0].genre_id,
+            seed_tracks: results[0].sample_tracks,
+            market: 'US',
+            limit: 1
+          });
+
+          spotifyGET(getFields);
+        }
+
+        // Returns 500 and an error message
+        else
+          res.status(500).json("Error: Unable to locate user's genre information.");
+      });
+
+      return;
+    }
+
+    const spotifyGET = async function(getFields)
+    {
+      const { data } = await curly.get('https://api.spotify.com/v1/recommendations?' + getFields, {
+        httpHeader: [
+          'Content-Type: application/json',
+          'Accept: application/json',
+          'Authorization: Bearer ' + req.cookies.access_token
+        ],
+      });
+      res.status(200).json(data);
+      return;
+    }
   });
     
   ////Genre API
@@ -527,7 +630,8 @@ app.get('/spotify', function(req, res) {
   
     });
   
-    const insert = function(genre_id, name, sample_artists, sample_tracks, db, user_id){
+    const insert = function(genre_id, name, sample_artists, sample_tracks, db, user_id)
+    {
     
     var ObjectId = require('mongodb').ObjectID;
   
@@ -580,14 +684,14 @@ app.get('/spotify', function(req, res) {
   
     console.log(req.cookies);
     user_id = req.cookies.user_id;
-  
-    client.connect (function(err) 
+    
+    client.connect (function(err)
     {
       assert.equal(null, err);
       console.log("Connected successfully to server"); 
       const db = client.db(dbName);  
   
-      find(user_id, db, function() 
+      find(user_id, db, function()
       {
         client.close();
       }); 
@@ -650,10 +754,10 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
 
-      // incoming: track_id
+      // incoming: track_id, user_id, name
       // outgoing: none
 
-      const { track_id } = req.body;
+      const { name, track_id } = req.body;
       var user_id = req.cookies.user_id;
 
       insert(track_id, db, user_id, function(){
@@ -661,12 +765,12 @@ app.get('/spotify', function(req, res) {
       });
     });
 
-    const insert = function(track_id, db, user_id){
+    const insert = function(name, track_id, db, user_id){
 
       var ObjectId = require('mongodb').ObjectID;
 
       //Create new disliked track
-      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id };
+      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:name };
 
       //Add disliked track
        try{
@@ -724,7 +828,219 @@ app.get('/spotify', function(req, res) {
     }
 
   });
+  
+  app.post('/api/delete_like', async (req, res) => 
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server");
+      const db = client.db(dbName); 
 
+      // incoming: track_id, name, genre
+      // outgoing: unknown
+
+      const {name} = req.body;
+      //var user_id = req.cookies.user_id;
+
+      dele(name, db, function(){
+        client.close();
+      });
+    });
+
+    const dele = function(name, db)
+    {
+
+      var ObjectId = require('mongodb').ObjectID;
+    
+          const user = db.collection('user_liked_tracks').find({"name": name}).toArray(async function(err, results)
+      {
+        console.log("Found the following records");
+        //console.log(results.length);
+
+        //var dbo = db.db(dbName);
+
+        if(results.length > 0){
+            
+         // pass = results[0]._id;
+          //console.log(pass);
+          //console.log(results[0].firstname); 
+
+        db.collection("user_liked_tracks").deleteOne({_id: pass}, function(err, obj) {
+            if (err) throw err;
+            console.log("1 document deleted");
+            //db.close();
+        });
+
+          res.status(200).json("Track was founded");
+        }
+        else{
+            return res.status(401).json({errorMessage: "Search does not exist"});
+        }
+
+      });
+    
+    }
+   
+  });
+  
+  
+  app.post('/api/delete_dislike', async (req, res) => 
+  {
+    client.connect (function(err)
+    {
+      assert.equal(null, err);
+      console.log("Connected successfully to server");
+      const db = client.db(dbName); 
+
+      // incoming: track_id, name, genre
+      // outgoing: unknown
+
+      const {name} = req.body;
+      //var user_id = req.cookies.user_id;
+
+      dele(name, db, function(){
+        client.close();
+      });
+    });
+
+    const dele = function(name, db)
+    {
+
+      var ObjectId = require('mongodb').ObjectID;
+    
+          const user = db.collection('user_disliked_tracks').find({"name": name}).toArray(async function(err, results)
+      {
+        console.log("Found the following records");
+        //console.log(results.length);
+
+        //var dbo = db.db(dbName);
+
+        if(results.length > 0){
+            
+         // pass = results[0]._id;
+          //console.log(pass);
+          //console.log(results[0].firstname); 
+
+        db.collection("user_disliked_tracks").deleteOne({_id: pass}, function(err, obj) {
+            if (err) throw err;
+            console.log("1 document deleted");
+            //db.close();
+        });
+
+          res.status(200).json("Track was founded");
+        }
+        else{
+            return res.status(401).json({errorMessage: "Search does not exist"});
+        }
+
+      });
+    
+    }
+   
+  });
+  
+  // Forgot Password API
+  app.post('/api/forgotPassword', async (req, res, next) => 
+  {
+    // Find user using the email given
+    const {email} = req.body;
+    const db = client.db();
+    resetTE = new Date();
+    const forgetfulUser = await db.collection('users').find({email:email}).toArray();
+    if (forgetfulUser.length <= 0)
+    {
+      res.status(400).json('Email does not exist.');
+      return next();
+    }
+    const id = forgetfulUser[0]._id;
+    const userEmail = forgetfulUser[0].email;
+    
+    // Generate reset token
+    const resetToken = crypt.randomBytes(32).toString('hex');
+    const encryptedResetToken = crypt.createHash('sha256').update(resetToken).digest('hex');
+    resetTE.setMilliseconds(resetTE.getMilliseconds()+10*60*1000);
+    db.collection('users').updateOne({_id:id}, {$set:{reset_token:encryptedResetToken, expiration_time:resetTE}});
+    
+    // Parameters for sending email
+    const resetURL = `${req.protocol}://${req.get('host')}/api/resetPassword/${resetToken}`;
+    var Options = {userEmail, resetURL};
+    sendEmail(Options);
+    
+    var ret = {
+      'Email of User':forgetfulUser[0].email, 
+      //'Unencrypted reset token':resetToken,
+      'Reset URL': resetURL,
+      'Expiration time of the reset token':resetTE, 
+      Error:''
+    };
+    res.status(200).json(ret);
+  });
+  
+  // Send email function
+  const sendEmail = async Options => 
+  {
+    // Create email connection
+    var transport = nodemailer.createTransport({
+      // FOR TESTING
+      //host: "smtp.mailtrap.io",
+      //port: 2525,
+      service: "hotmail",    
+      auth: {
+        // user: acfbcf19fe9545
+        // pass: 0be610ecf5b6b9
+        user: "jumble-password-recovery@outlook.com",      
+        pass: "Veryinsecurepassword"      
+      }
+    });
+    
+    // Define email params
+    var mailOptions = {
+      from: '"Password Recovery" <jumble-password-recovery@outlook.com>',
+      to: Options.userEmail,
+      subject: 'Forgotten Password? Reset it now',
+      text: `Forgot your password? Follow the link below to reset the password.\nIf you did not desire to reset the password, then please disregard this email.`,
+      html: '<h1>Forgot your password? </h1><p Follow the link below to reset the password.</p><p> Link will only be valid for 10 minutes</p> <a href="Options.resetURL">Will redirect you to password reset page</a> '
+    };
+  
+    // Send email
+    transport.sendMail(mailOptions, (error, info) =>
+    {
+      if (error) {
+        console.log(error);
+      }
+      //console.log('Email sent: ' + info.messageId);
+    });
+  };
+  
+  // Reset Password API
+  app.patch('/api/resetPassword/:token', async (req, res, next) =>
+  {
+    // Router /api/resetPassword/:token
+    const db = client.db();
+    const current = new Date();
+    
+    // Find and verify user via the token sent and expiration time
+    const hashedToken = crypt.createHash('sha256').update(req.params.token).digest('hex');
+    const findUser = await db.collection('users').findOne({reset_token:hashedToken, expiration_time:{$gt:current}});
+    if (!findUser)
+    {
+      console.log('No user found');
+      return next();
+    }
+  
+    // Set new password
+    db.collection('users').updateOne({_id:findUser._id}, {$set:{password:req.body.password, reset_token:'', expiration_time:'', password_updated_at:current}});
+  
+    var ret = {
+      'Token attached to URL':req.params.token,
+      'Desired password sent in':req.body.password, 
+      //'Users new password':findUser.password, 
+      Error:''
+    };
+    res.status(200).json(ret);
+    // Log user in
+  });
 
 app.get('/', function (req, res) {
   res.sendFile('index.html', { root: __dirname });
