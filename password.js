@@ -4,13 +4,13 @@ document.querySelector('verifyButton').addEventListener('click', () => { //match
 
     const email_input = document.querySelector('email').value; //match jsx
 
-    fetch('/api/password', { //match api
+    fetch('/api/forgotPassword', { 
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            email: email_input, //match api
+            email: email_input, 
         })
     })
 
