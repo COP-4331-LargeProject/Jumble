@@ -1,3 +1,6 @@
+// Login Component which displays the login portion of the login page screen. Also has the triggers for the signup and
+// Password reset pages at the bottom
+
 import React from "react";
 import "../Stylesheet.css"
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
@@ -6,6 +9,9 @@ import Popup from "./Popup";
 import SignUpPage from "../pages/SignUpPage";
 import Verification from "../pages/Verification";
 import PasswordReset from "../pages/PasswordReset";
+import { FormControl } from "@material-ui/core";
+import { InputAdornment } from "@material-ui/core";
+import { FilledInput } from "@material-ui/core";
 
 function Login() {
   const doLogin = async (event) => {
@@ -13,6 +19,7 @@ function Login() {
     alert("doIt()");
   };
 
+  // Hook that enables the poppup for Signup and password pages
   const [displaySignup, setDisplaySignup] = useState(false);
   const [displayResetPassword, setDisplayResetPassword] = useState(false);
   return (

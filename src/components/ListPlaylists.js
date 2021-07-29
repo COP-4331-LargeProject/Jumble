@@ -1,3 +1,5 @@
+// Component display's the playlist (Liked, Disliked) for the user on the Dashboard page
+
 import React from "react";
 import "../Stylesheet.css";
 import { Link } from "react-router-dom";

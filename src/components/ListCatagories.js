@@ -1,3 +1,4 @@
+// Component which list the Genres that we have for to the User to choose from.
 import React from "react";
 import "../Stylesheet.css";
 import { Link } from "react-router-dom";

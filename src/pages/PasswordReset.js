@@ -1,9 +1,12 @@
+// Displays the password reset page within the popup component
+
 import React, { useState } from "react";
 import Popup from "../components/Popup";
 import EmailRecovery from "./EmailRecovery";
 
 function PasswordReset() {
   const [email, setEmail] = useState(false);
+  // Hook to display the Email Recovery page
   const [displayEmailRecovery, setDisplayEmailRecovery] = useState('');
   return (
     <span>

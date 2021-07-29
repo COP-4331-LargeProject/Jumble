@@ -1,3 +1,5 @@
+// Dashboard page. It's called Genre but should really should be called dashboard but it would take a bit to change.
+// Displays the center page for the app after user has logged in with the playlists and Genres. 
 import React from "react";
 import DashboardBackground from "../components/DashboardBackground";
 import { Link } from "react-router-dom";

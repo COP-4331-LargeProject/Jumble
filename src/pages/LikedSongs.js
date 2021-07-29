@@ -1,3 +1,5 @@
+// Displays the liked songs page. Add the <Songlist/> component like on the Disliked songs page to see data pop up.
+
 import React from "react";
 import DashboardBackground from "../components/DashboardBackground";
 import "../Stylesheet.css";

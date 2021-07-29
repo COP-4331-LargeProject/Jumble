@@ -1,3 +1,5 @@
+// Signup page which display's within the popup component
+
 import React, {useState} from "react";
 import Background from "../components/Background";
 import "../Stylesheet.css";
@@ -11,11 +13,9 @@ function SignUpPage() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setconfirmPassword] = useState('');
   const [email, setEmail] = useState('');
-
+  // Verifcation popup after signing up
   const [displayVerify, setDisplayVerify] = useState(false);
   return (
-      //<div className = "backgroundVideo">
-          //<Background/>
     <div id = "signUpBody">
       <span id="signUpText">Get Started</span>
       <span id = "signUpText2">It's quick and easy.</span>

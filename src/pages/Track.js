@@ -1,3 +1,6 @@
+// Track page which will be the page the user is directed to after chosing a Genre. They will be able to like and dislike
+// music on this page
+
 import React from "react";
 import "../Stylesheet.css";
 import Button from '@material-ui/core/Button';
