@@ -4,7 +4,7 @@ import "../Stylesheet.css";
 import { Link } from "react-router-dom";
 
 const ListCatagories = () => {
-    const Categories = ['Metal', 'Study', 'Rainy Day', 'Hip-Hop']
+    const Categories = ['Metal', 'Study', 'Rainy Day', 'Hip-Hop', 'Pop', 'Rock', 'Rap', 'Country']
   return ( 
     <div id="categoryList">
         {
