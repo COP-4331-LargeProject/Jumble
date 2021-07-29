@@ -80,18 +80,6 @@
   color: #163f74;
 }
 
-#title {
-  display: flex;
-  color: #8595c9;
-  font-family: "Roboto";
-  font-style: bold;
-  font-size: 40px;
-  align-self: center;
-  border-radius: 20px;
-  opacity: 70%;
-  padding-left: 10px;
-}
-
 #inner-title {
   font-family: "Moon 2.0 Regular";
   font-size: 32px;
@@ -239,6 +227,7 @@
   letter-spacing: 0px;
   color: #000000;
   opacity: 1;
+  padding: 0px;
 }
 
 #loginBackground {
@@ -384,4 +373,22 @@
   right: 16px;
   border: 0px #000000;
   border-radius: 30%;
+}
+
+#singleSong {
+  background-color: white;
+  padding: 20px;
+  color: #000000;
+  align-items: center;
+  width: 600px;
+}
+
+#songListdiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-left: 5%;
+}
+
+.songBox {
 }
