@@ -1,3 +1,8 @@
+// App.js which controls the display of the app. I used react router -> (npm install --save react-router-dom)
+// to route the pages as well as Materia UI -> (npm install @material-ui/core) for some of
+// The buttons/features like the checkbox for the signup screen or buttons on the tracks page
+// Let me know if you have any questions
+
 import React from "react";
 import LoginPage from "./pages/LoginPage";
 import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
@@ -10,7 +15,7 @@ import DislikedSongs from "./pages/DislikedSongs";
 function App() {
   return (
     <Router> 
-        <div>
+      <div>
         <Switch>
         <Route path="/" exact component={LoginPage}/>
         <Route path="/Login" component={LoginPage}/>
