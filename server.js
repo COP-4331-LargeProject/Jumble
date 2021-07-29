@@ -6,6 +6,8 @@ var cors = require('cors');
 var querystring = require('querystring');
 const { curly } = require("node-libcurl");
 const bcrypt = require('bcryptjs');
+const crypt = require('crypto');
+const nodemailer = require('nodemailer');
 
 const app = express();
 var cookieParser = require("cookie-parser");
@@ -152,6 +154,8 @@ app.post('/api/register', async (req, res) =>
   {
       var ret = "";
       var id = "";
+      var unencryptedVerify = crypt.randomBytes(32).toString('hex');
+      const encryptedVerify = crypt.createHash('sha256').update(unencryptedVerify).digest('hex');
 
       // Find some documents
       db.collection('users').find({"email": email}).toArray(function(err, results)
@@ -168,7 +172,7 @@ app.post('/api/register', async (req, res) =>
             hash = bcrypt.hashSync(password, 10);
 
             //Create newUser with a hashed password
-            const newUser = { email: email, password: hash, first_name: first_name, last_name: last_name};
+            const newUser = { email: email, password: hash, first_name: first_name, last_name: last_name, verify_token:encryptedVerify};
 
             var error = '';
 
@@ -184,6 +188,10 @@ app.post('/api/register', async (req, res) =>
               //ret = { error: error, id: results[0]._id};
               //console.log(ret);
 
+              const verifyURL = `${req.protocol}://${req.get('host')}/api/resetPassword/${unencryptedVerify}`;
+              var Options = {email, unencryptedVerify, verifyURL};
+              sendVerify(Options);
+              
               res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
               res.status(200).json("Data added to cookie");
               
@@ -193,8 +201,67 @@ app.post('/api/register', async (req, res) =>
     }
 });
 
-//LOGIN API
+// Send verification email
+const sendVerify = async verifyOptions => 
+{
+  // Create email connection
+  var transport = nodemailer.createTransport({
+    // FOR TESTING
+    //host: "smtp.mailtrap.io",
+    //port: 2525,
+    service: "hotmail",    
+    auth: {
+      //user: "acfbcf19fe9545",
+      //pass: "0be610ecf5b6b9"
+      user: "jumble-password-recovery@outlook.com",      
+      pass: "Veryinsecurepassword"      
+    }
+  });
+  
+  // Define email params
+  var options = {
+    from: '"Password Recovery" <jumble-password-recovery@outlook.com>',
+    to: verifyOptions.email,
+    subject: 'Account Verification',
+    text: `Just created a new account? Verify it now! \n\nUse the code below to verify your new account. Enter this code and your email onto the verification page\n\n${verifyOptions.verifyURL}`,
+    html: '<h1>Just created a new account? Verify it now!</h1><p> Use the code below to verify your new account. Enter this code and your email onto the verification page</p><a href="verifyOptions.verifyURL">Will redirect you to verification page!</a>'
+  };
 
+  // Send email
+  transport.sendMail(options, (error, info) =>
+  {
+    if (error) {
+      console.log(error);
+    }
+    //console.log('Email sent: ' + info.messageId);
+  });
+};
+
+// Verify account status
+app.post('/api/accountVerification/:verification', async (req, res, next) => 
+{
+  // Find user via email and token
+  const {email} = req.body;
+  const db = client.db();  
+  const verifyToken = crypt.createHash('sha256').update(req.params.verification).digest('hex');
+  const verifyUserEmail = await db.collection('users').findOne({email:email, verify_token:verifyToken});
+  if (!verifyUserEmail)
+  {
+    res.status(400).json({Error:'Email and verification token combination does not exist. Please try again.'});
+  }
+
+  // Return verified
+  else
+  {
+    res.status(200).json({
+      'User':'Verified',
+      Error:''
+    });
+  }
+  // Redirect
+});
+
+//LOGIN API
 app.post('/api/login', async (req, res) =>     
  {      
      client.connect (function(err)
@@ -618,19 +685,19 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
   
-      // incoming: user_id, genre_id, name, sample_artists, sample_tracks
+      // incoming: user_id, genre_id, track, sample_artists, sample_tracks
       // outgoing: none
   
-      const { genre_id, name, sample_artists, sample_tracks } = req.body;
+      const { genre_id, track_name, sample_artists, sample_tracks } = req.body;
       var user_id = req.cookies.user_id;
   
-      insert(genre_id, name, sample_artists, sample_tracks, db, user_id, function(){
+      insert(genre_id, track_name, sample_artists, sample_tracks, db, user_id, function(){
         client.close();
       });
   
     });
   
-    const insert = function(genre_id, name, sample_artists, sample_tracks, db, user_id)
+    const insert = function(genre_id, track_name, sample_artists, sample_tracks, db, user_id)
     {
     
     var ObjectId = require('mongodb').ObjectID;
@@ -661,7 +728,7 @@ app.get('/spotify', function(req, res) {
           console.log("The genre does not exist for the user");
   
           //Create the genre
-          const newGenre = { user_id: ObjectId(user_id), genre_id: genre_id, name: name, sample_artists: sample_artists, sample_tracks: sample_tracks};
+          const newGenre = { user_id: ObjectId(user_id), genre_id: genre_id, name: track_name, sample_artists: sample_artists, sample_tracks: sample_tracks};
   
           //Insert newGenre
           try{
@@ -754,23 +821,23 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
 
-      // incoming: track_id, user_id, name
+      // incoming: track_id, user_id, track
       // outgoing: none
 
-      const { name, track_id } = req.body;
+      const { track_name, track_id } = req.body;
       var user_id = req.cookies.user_id;
 
-      insert(track_id, db, user_id, function(){
+      insert(track_name, track_id, db, user_id, function(){
         client.close();
       });
     });
 
-    const insert = function(name, track_id, db, user_id){
+    const insert = function(track_name, track_id, db, user_id){
 
       var ObjectId = require('mongodb').ObjectID;
 
       //Create new disliked track
-      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:name };
+      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:track_name };
 
       //Add disliked track
        try{
@@ -797,23 +864,23 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
 
-      // incoming: track_id, name, genre
+      // incoming: track_id, track_name, genre
       // outgoing: unknown
 
-      const { track_id, name, genre } = req.body;
+      const { track_id, track_name, genre } = req.body;
       var user_id = req.cookies.user_id;
 
-      insert(track_id, name, genre, db, user_id, function(){
+      insert(track_id, track_name, genre, db, user_id, function(){
         client.close();
       });
     });
 
-    const insert = function(track_id, name, genre, db, user_id){
+    const insert = function(track_id, track_name, genre, db, user_id){
 
       var ObjectId = require('mongodb').ObjectID;
 
       //Create new liked track
-      const likedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:name, genre:genre, };
+      const likedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:track_name, genre:genre, };
 
       //Insert liked track
        try{
@@ -837,23 +904,23 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
 
-      // incoming: track_id, name, genre
+      // incoming: track_id, track, genre
       // outgoing: unknown
 
-      const {name} = req.body;
+      const {track_name} = req.body;
       //var user_id = req.cookies.user_id;
 
-      dele(name, db, function(){
+      dele(track_name, db, function(){
         client.close();
       });
     });
 
-    const dele = function(name, db)
+    const dele = function(track_name, db)
     {
 
       var ObjectId = require('mongodb').ObjectID;
     
-          const user = db.collection('user_liked_tracks').find({"name": name}).toArray(async function(err, results)
+          const user = db.collection('user_liked_tracks').find({"name": track_name}).toArray(async function(err, results)
       {
         console.log("Found the following records");
         //console.log(results.length);
@@ -893,23 +960,23 @@ app.get('/spotify', function(req, res) {
       console.log("Connected successfully to server");
       const db = client.db(dbName); 
 
-      // incoming: track_id, name, genre
+      // incoming: track_id, track, genre
       // outgoing: unknown
 
-      const {name} = req.body;
+      const {track_name} = req.body;
       //var user_id = req.cookies.user_id;
 
-      dele(name, db, function(){
+      dele(track_name, db, function(){
         client.close();
       });
     });
 
-    const dele = function(name, db)
+    const dele = function(track_name, db)
     {
 
       var ObjectId = require('mongodb').ObjectID;
     
-          const user = db.collection('user_disliked_tracks').find({"name": name}).toArray(async function(err, results)
+          const user = db.collection('user_disliked_tracks').find({"name": track_name}).toArray(async function(err, results)
       {
         console.log("Found the following records");
         //console.log(results.length);
