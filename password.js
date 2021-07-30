@@ -1,26 +1,25 @@
 //recover password
-document.querySelector('verifyButton').addEventListener('click', () => { //match jsx
+const email_input = document.querySelector('email').value; //match frontend
+
+async function recover() {
     console.log('reset password')
+    if (!email_input) return
 
-    const email_input = document.querySelector('email').value; //match jsx
-
-    fetch('/api/forgotPassword', { 
+    fetch('/api/forgotPassword', { //match api
         method: 'POST',
         headers: {
             'Content-Type': 'application/json'
         },
         body: JSON.stringify({
-            email: email_input, 
+            email: email_input,
         })
     })
 
-        .then(res => {
-            if (res.ok) {
-                console.log('Success')
-                window.location.replace('/login') //remove if redirect is not needed
-            } else {
-                console.log('Error')
-            }
-        })
-        .catch(error => console.log('Error', error))
-})
+    if (res.ok) {
+        console.log('Success')
+        window.location.replace('/login') //match url
+    } else {
+        console.log('Error')
+    }
+
+}
