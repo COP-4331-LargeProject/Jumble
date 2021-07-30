@@ -5,7 +5,7 @@ const pass_input = document.querySelector('password').value; //match frontend
 async function login() {
     if(!email_input || !pass_input) return
 
-    fetch('/api/login', { //match api
+    const res = fetch('/api/login', { //match api
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
