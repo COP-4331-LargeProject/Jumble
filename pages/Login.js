@@ -23,11 +23,12 @@ const Login = ({ navigation: { navigate } }) => {
   const windowHeight = useWindowDimensions().height;
   return (
     <ImageBackground
-      source={require('../assets/Backgrounds/Login_Background.jpg')} resizeMode="cover" style={{flex: 1, width: windowWidth, height: windowHeight}}
+      source={require('../assets/Backgrounds/Login_Background_Mobile.png')} resizeMode="cover" style={{flex: 1, width: windowWidth, height: windowHeight}}
     >
       
       <View style={styles.body}>
-        <Image source={require('../assets/Images/login.jpg')} style={{flex: 1, alignSelf: 'center', width: 233, height: 233}}></Image>
+        <Image source={require('../assets/Images/login.jpg')} style={{alignSelf: 'center', width: 250, height: 250, resizeMode: "cover"}}>
+        </Image>
         <Text style={styles.loginText}>Welcome{'\n'}Back</Text>
         <TextInput
           style={styles.loginTextInput}
@@ -46,7 +47,7 @@ const Login = ({ navigation: { navigate } }) => {
         <TouchableOpacity
           style={styles.loginButton}
           title="Login"
-          onPress={() => navigate('Genre Screen')}
+          onPress={() => navigate('Home Screen')}
         >
           <Text style={styles.loginButtonText}>Login</Text>
         </TouchableOpacity>
@@ -58,10 +59,8 @@ const Login = ({ navigation: { navigate } }) => {
             Don't have an account?
             <Text
               onPress={() => navigate('Signup Screen')}
-              style={{ color: '#2773be', fontWeight: 'bold', fontSize: 15 }}
             >
-              {' '}
-              Sign Up
+            <Text style={styles.linkText}> Sign Up</Text>
             </Text>
           </Text>
         </TouchableOpacity>
@@ -74,26 +73,32 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'center',
-  },
-  loginTextInput: {
-    borderWidth: 1,
-    borderColor: 'black',
-    backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
-    margin: 8,
-    fontSize: 20,
-    marginHorizontal: 20,
+    paddingLeft: 13,
+    paddingRight: 18,
+    marginTop: -130
   },
   loginText: {
     fontSize: 30,
-    margin: 20,
-    marginTop: 0,
+    fontFamily: "Moon2.0-Regular",
+    marginLeft: 20,
+    marginTop: -10,
+    marginBottom: 10,  
+  },
+  loginTextInput: {
+    borderWidth: 1,
+    borderColor: "#707070",
+    backgroundColor: 'white',
+    padding: 15,
+    borderRadius: 12,
+    margin: 8,
+    fontSize: 20,
+    marginHorizontal: 20,
+    fontFamily: "Roboto-Light"
   },
   loginButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2773be',
+    backgroundColor: '#605CFF',
     padding: 13,
     borderRadius: 10,
     margin: 7,
@@ -101,10 +106,11 @@ const styles = StyleSheet.create({
   },
   loginButtonText: {
     color: 'white',
-    fontSize: 20,
+    fontFamily: "Roboto-Regular",
+    fontSize: 21,
   },
   linkText: {
-    color: '#2773be',
+    color: '#163F74',
     fontWeight: 'bold',
   },
   forgetTextPosition: {
@@ -114,16 +120,15 @@ const styles = StyleSheet.create({
   },
   signUpPosition: {
     alignItems: 'center',
-    marginTop: 15,
+    marginTop: 20,
   },
   unclickableSignUpText: {
+    fontFamily: "Roboto-Light",
     fontSize: 15,
   },
   loginImage: {
     margin: 20,
     alignSelf: 'center',
-    //flex: 1,
-    //justifyContent: 'center',
   }
 });
 

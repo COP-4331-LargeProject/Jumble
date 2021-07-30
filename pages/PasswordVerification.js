@@ -17,23 +17,22 @@ const Verification = ({ navigation}) => {
 
 
         <View style={styles.headerTop}>
-          <Text style={styles.thanksText}>Thanks</Text>
-          <Text style={styles.thanksText}>for</Text>
+          <Text style={styles.thanksText}>Check</Text>
+          <Text style={styles.thanksText}>your</Text>
         </View>
         <View style={styles.headerBottom}>
-          <Text style={styles.thanksText}>signing</Text>
-          <Text style={styles.thanksText}>up!</Text>
+          <Text style={styles.thanksText}>e-mail</Text>
         </View>
         <View>
           <Text style={styles.verifyText}>
-            Please verify your e-mail 
+            We have sent password
           </Text>
           <Text style={styles.verifyText}>
-            address so you can start listening!   
+            recovery instructions to your e-mail.
           </Text>   
         </View>
         <Image
-          source={require('../assets/Images/signup.png')}
+          source={require('../assets/Images/verify.png')}
           resizeMode="contain"
           style={{
             alignSelf: 'center',

@@ -3,6 +3,7 @@ import React from 'react';
 import { useState } from 'react';
 import {
   SafeAreaView,
+  Image,
   Text,
   View,
   StyleSheet,
@@ -11,11 +12,10 @@ import {
   ImageBackground,
 } from 'react-native';
 import { useWindowDimensions } from 'react-native';
-import * as Font from 'expo-font';
-import { Ionicons } from '@expo/vector-icons';
+
 
 // Signup Element imports navigation from App.js to switch between pages
-const Signup = ({ navigation}) => {
+ const Signup = ({ navigation}) => {
   // Hooks for taking the input's entered by the user
   const [firstName, setFirstName] = useState('');
   const [lastName, setLastName] = useState('');
@@ -26,16 +26,26 @@ const Signup = ({ navigation}) => {
   // Gets Device Dimensions
   const windowWidth = useWindowDimensions().width;
   const windowHeight = useWindowDimensions().height;
+  // Image touch
+ 
   return (
     //imports background image and body elements below
     <ImageBackground
-      source={require('../assets/Backgrounds/SigningUp_Background.jpg')}
-      resizeMode="cover"
-      style={{ flex: 1, width: windowWidth, height: windowHeight }}
-    >
+    source={require('../assets/Backgrounds/SignUp_Background_Mobile.png')} resizeMode="cover" style={{flex: 1, width: windowWidth, height: windowHeight}}
+  >
+  
       <View style={styles.body}>
-      <Ionicons name="chevron-back-sharp" size={35} color="black" style={{marginLeft: 10}} onPress={() => navigation.goBack()}/>
-        <Text style={styles.signUpText}>Sign Up</Text>
+      <TouchableOpacity onPress={() => navigation.goBack()}>
+      <Image style={styles.backButton} source={require('../assets/Icons/back.png')}/>
+      </TouchableOpacity>
+      
+        <View style={styles.header}>
+          <Text style={styles.signUpText}>Get</Text>
+          <Text style={styles.signUpText}>Started</Text>
+        </View>
+
+        <Text style={styles.bottomHeader}>It's quick and easy.</Text>
+
         <View>
           <TextInput
             style={styles.signUpTextInput}
@@ -82,8 +92,10 @@ const Signup = ({ navigation}) => {
           <TouchableOpacity
             title="SignUpButton"
             style={styles.signUpButton}
+            // onPress={() => navigation.navigate('Verify Screen')} 
+
+
             onPress={() => navigation.navigate('Verify Screen')}
-            //style={{ color: '#2773be', fontWeight: 'bold', fontSize: 15 }}
           >
             <Text style={styles.signUpButtonText}>Sign Up</Text>
           </TouchableOpacity>
@@ -97,34 +109,58 @@ const styles = StyleSheet.create({
   body: {
     flex: 1,
     justifyContent: 'center',
+    paddingLeft: 12,
+    marginTop: -20
   },
   signUpTextInput: {
     borderWidth: 1,
-    borderColor: 'black',
+    borderColor: '#707070',
     backgroundColor: 'white',
-    padding: 15,
-    borderRadius: 10,
+    padding: 17,
+    width: 320,
+    borderRadius: 13,
     margin: 8,
     fontSize: 21,
     marginHorizontal: 20,
+    fontFamily: "Roboto-Light"
   },
   signUpText: {
     fontSize: 40,
     margin: 20,
+    fontFamily: "Moon2.0-Regular",
+    marginRight: -12
   },
   signUpButton: {
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#2773be',
-    padding: 13,
-    borderRadius: 10,
+    backgroundColor: '#605CFF',
+    padding: 15,
+    borderRadius: 13,
     margin: 7,
+    marginTop: 10,
     marginHorizontal: 20,
+    width: 320,
   },
   signUpButtonText: {
     color: 'white',
-    fontSize: 20,
+    fontSize: 22,
+    fontFamily: "Roboto-Regular",
   },
+  header: {
+    flexDirection: 'row',
+    justifyContent: 'flex-start',
+  },
+  bottomHeader: {
+    fontFamily: "Roboto-Light",
+    fontSize: 18,
+    marginTop: -15,
+    marginBottom: 18,
+    marginLeft: 22
+  },
+  backButton: {
+    marginLeft:22,
+  },
+
 });
 
 export default Signup;
