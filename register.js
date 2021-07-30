@@ -7,7 +7,7 @@ const last_name_input = document.querySelector('last_name').value //match fronte
 async function register() {
   if(!email_input || !pass_input || !first_name_input || !last_name_input) return
 
-  fetch('/api/register', { //match api
+  const res = fetch('/api/register', { //match api
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
