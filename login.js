@@ -1,15 +1,15 @@
 //login
-document.querySelector('#login-btn').addEventListener('click', () => { //match jsx
-    console.log('login')
+const email_input = document.querySelector('email').value; //match frontend
+const pass_input = document.querySelector('password').value; //match frontend
 
-    const email_input = document.querySelector('#email').value; //match jsx
-    const pass_input = document.querySelector('#password').value; //match jsx
-    const login_error = document.querySelector('#error'); //optional
+async function login() {
+    if(!email_input || !pass_input) return
 
     fetch('/api/login', { //match api
         method: 'POST',
         headers: {
-            'Content-Type': 'application/json'
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         },
         body: JSON.stringify({
             email: email_input, //match api
@@ -17,15 +17,10 @@ document.querySelector('#login-btn').addEventListener('click', () => { //match j
         })
     })
 
-        .then(res => {
-            if (res.ok) {
-                console.log('Success')
-                login_error.style.display = 'none' //optional
-                window.location.replace('/')
-            } else {
-                console.log('Incorrect username/password')
-                login_error.style.display = 'block' //optional
-            }
-        })
-        .catch(error => console.log('Error', error))
-})
+    if (!res.ok) {
+        console.log('Incorrect username/password')
+    } else {
+        console.log('Success')
+        window.location.replace('/') //match url
+    }
+}
