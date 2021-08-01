@@ -569,7 +569,7 @@ app.get('/spotify', function(req, res) {
 
     if(req.params.query == null || req.params.type == null)
     {
-      res.status(400).json("No search query");
+      res.status(400).json("Error: Invalid search query.");
       return;
     }
     
@@ -594,7 +594,12 @@ app.get('/spotify', function(req, res) {
       return;
     }
     
-    res.status(200).json(data.tracks.items[0]);
+    if(req.params.type === "artist")
+      res.status(200).json(data.artists.items[0].id);
+    else if(req.params.type === "track")
+      res.status(200).json(data.tracks.items[0].id);
+    else
+      res.status(400).json("Error: No search type.");
   });
 
   // Spotify Recommendation
@@ -613,9 +618,7 @@ app.get('/spotify', function(req, res) {
       const db = client.db(dbName);
 
       // incoming: user_id, genre_id
-      // outgoing: sample_artist, sample_track
 
-      //var access_token = "BQD9OGyFCWuCLtumh8Zv9HpfI7UoTQ8pjjvv-4DroREUDIczSwB0LNtKs-GSXtjfA5i2zoggNofASlF06fuEq-6NhWdQQuAl_j6_DmrqpPz_wVeX_FkPl1dSFFhzlUVYw65CRW3KmbOloSeuqXD-qT7ixe6-V4samw";
       if(req.params.user_id == null || req.params.genre_id == null)
         res.status(400).json("Error: user_id or genre_id was empty.");
 
@@ -650,7 +653,7 @@ app.get('/spotify', function(req, res) {
             limit: 1
           });
 
-          spotifyGET(getFields);
+          spotifyGET(getFields, user_id, db);
         }
 
         // Returns 500 and an error message
@@ -661,7 +664,7 @@ app.get('/spotify', function(req, res) {
       return;
     }
 
-    const spotifyGET = async function(getFields)
+    const spotifyGET = async function(getFields, user_id, db)
     {
       const { data } = await curly.get('https://api.spotify.com/v1/recommendations?' + getFields, {
         httpHeader: [
@@ -670,8 +673,47 @@ app.get('/spotify', function(req, res) {
           'Authorization: Bearer ' + req.cookies.access_token
         ],
       });
+      
+      if(checkAlreadyLiked(user_id, data.tracks[0].id, db))
+      {
+        spotifyGET(getFields, user_id, db);
+        console.log("User has liked this song before. Will generate another.");
+        return;
+      }
+
+      if(checkAlreadyDisliked(user_id, data.tracks[0].id, db))
+      {
+        spotifyGET(getFields, user_id, db);
+        console.log("User has disliked this song before. Will generate another.");
+        return;
+      }
+
       res.status(200).json(data);
       return;
+    }
+
+    // If a song has been liked/disliked, return true
+    // Returns false otherwise
+    const checkAlreadyLiked = function(user_id, track_id, db)
+    {
+      db.collection('user_liked_tracks').find({"user_id": user_id, "track_id":track_id }).toArray(function(err, results)
+      {
+        if(results.length > 0)
+          return true;
+        else
+          return false;
+      });
+    }
+
+    const checkAlreadyDisliked = function(user_id, track_id, db)
+    {
+      db.collection('user_disliked_tracks').find({"user_id": user_id, "track_id":track_id }).toArray(function(err, results)
+      {
+        if(results.length > 0)
+          return true;
+        else
+          return false;
+      });
     }
   });
     
@@ -688,16 +730,16 @@ app.get('/spotify', function(req, res) {
       // incoming: user_id, genre_id, track, sample_artists, sample_tracks
       // outgoing: none
   
-      const { genre_id, track_name, sample_artists, sample_tracks } = req.body;
+      const { genre_id, genre_name, sample_artists, sample_tracks } = req.body;
       var user_id = req.cookies.user_id;
   
-      insert(genre_id, track_name, sample_artists, sample_tracks, db, user_id, function(){
+      insert(genre_id, genre_name, sample_artists, sample_tracks, db, user_id, function(){
         client.close();
       });
   
     });
   
-    const insert = function(genre_id, track_name, sample_artists, sample_tracks, db, user_id)
+    const insert = function(genre_id, genre_name, sample_artists, sample_tracks, db, user_id)
     {
     
     var ObjectId = require('mongodb').ObjectID;
@@ -728,7 +770,7 @@ app.get('/spotify', function(req, res) {
           console.log("The genre does not exist for the user");
   
           //Create the genre
-          const newGenre = { user_id: ObjectId(user_id), genre_id: genre_id, name: track_name, sample_artists: sample_artists, sample_tracks: sample_tracks};
+          const newGenre = { user_id: ObjectId(user_id), genre_id: genre_id, genre_name: genre_name, sample_artists: sample_artists, sample_tracks: sample_tracks};
   
           //Insert newGenre
           try{
@@ -837,7 +879,7 @@ app.get('/spotify', function(req, res) {
       var ObjectId = require('mongodb').ObjectID;
 
       //Create new disliked track
-      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:track_name };
+      const dislikedtrack = { user_id: ObjectId(user_id), track_id:track_id, track_name:track_name };
 
       //Add disliked track
        try{
@@ -880,7 +922,7 @@ app.get('/spotify', function(req, res) {
       var ObjectId = require('mongodb').ObjectID;
 
       //Create new liked track
-      const likedtrack = { user_id: ObjectId(user_id), track_id:track_id, name:track_name, genre:genre, };
+      const likedtrack = { user_id: ObjectId(user_id), track_id:track_id, track_name:track_name, genre_name:genre, };
 
       //Insert liked track
        try{
@@ -908,19 +950,19 @@ app.get('/spotify', function(req, res) {
       // outgoing: unknown
 
       const {track_name} = req.body;
-      //var user_id = req.cookies.user_id;
+      var user_id = req.cookies.user_id;
 
       dele(track_name, db, function(){
         client.close();
       });
     });
 
-    const dele = function(track_name, db)
+    const dele = function(user_id, track_name, db)
     {
 
       var ObjectId = require('mongodb').ObjectID;
     
-          const user = db.collection('user_liked_tracks').find({"name": track_name}).toArray(async function(err, results)
+          const user = db.collection('user_liked_tracks').find({"user_id": ObjectId(user_id), "track_name": track_name}).toArray(async function(err, results)
       {
         console.log("Found the following records");
         //console.log(results.length);
@@ -933,7 +975,7 @@ app.get('/spotify', function(req, res) {
           //console.log(pass);
           //console.log(results[0].firstname); 
 
-        db.collection("user_liked_tracks").deleteOne({_id: pass}, function(err, obj) {
+        db.collection("user_liked_tracks").deleteOne({"user_id": ObjectId(user_id), "track_name": track_name}, function(err, obj) {
             if (err) throw err;
             console.log("1 document deleted");
             //db.close();
@@ -964,19 +1006,19 @@ app.get('/spotify', function(req, res) {
       // outgoing: unknown
 
       const {track_name} = req.body;
-      //var user_id = req.cookies.user_id;
+      var user_id = req.cookies.user_id;
 
       dele(track_name, db, function(){
         client.close();
       });
     });
 
-    const dele = function(track_name, db)
+    const dele = function(user_id, track_name, db)
     {
 
       var ObjectId = require('mongodb').ObjectID;
     
-          const user = db.collection('user_disliked_tracks').find({"name": track_name}).toArray(async function(err, results)
+          const user = db.collection('user_disliked_tracks').find({"user_id": ObjectId(user_id), "track_name": track_name}).toArray(async function(err, results)
       {
         console.log("Found the following records");
         //console.log(results.length);
@@ -989,7 +1031,7 @@ app.get('/spotify', function(req, res) {
           //console.log(pass);
           //console.log(results[0].firstname); 
 
-        db.collection("user_disliked_tracks").deleteOne({_id: pass}, function(err, obj) {
+        db.collection("user_disliked_tracks").deleteOne({"user_id": ObjectId(user_id), "track_name": track_name}, function(err, obj) {
             if (err) throw err;
             console.log("1 document deleted");
             //db.close();
