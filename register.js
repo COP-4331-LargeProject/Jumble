@@ -9,7 +9,7 @@ async function register() {
   if(!email_input || !pass_input || !first_name_input || !last_name_input) return
   if(pass_input != confirm_pass_input) return
 
-  const res = fetch('/api/register', { //matches api
+  const res = await fetch('/api/register', { //matches api
     method: 'POST',
     headers: {
       'Content-Type': 'application/json'
