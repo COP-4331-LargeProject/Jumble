@@ -1,0 +1,6 @@
+module Pods_jumbleapp_jumbleappTests {
+  umbrella header "Pods-jumbleapp-jumbleappTests-umbrella.h"
+
+  export *
+  module * { export * }
+}
