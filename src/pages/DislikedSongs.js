@@ -11,8 +11,12 @@ function DislikedSongs() {
     return(
     <div id="dislikedSongsDiv">
         <DashboardBackground/>
-        <Link to="/" style={{ textDecoration: 'none' }}><p id="logoutButton">Logout</p></Link>
-        <SongList/>
+        <div style={{display: "flex", flexDirection: "row"}}><Link id="homeStyle" to="/Dashboard"><img id="homeImage" src= {require('../Assets/Images/Home.PNG').default} alt="cannot display"/></Link><Link to="/" style={{ textDecoration: 'none' }}><p id="logoutButton">Logout</p></Link></div>
+        <div className="dislikedDiv">
+            <div id="dislikedScrollDiv">
+                <SongList/>
+            </div>
+        </div>
     </div>  
     );
 }

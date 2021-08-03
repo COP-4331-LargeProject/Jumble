@@ -11,26 +11,18 @@ function Track() {
     return(
         <div>
         <DashboardBackground/>
-        <Link to="/" style={{ textDecoration: 'none' }}><p id="logoutButton">Logout</p></Link>
+        <div style={{display: "flex", flexDirection: "row"}}><Link id="homeStyle" to="/Dashboard"><img id="homeImage" src= {require('../Assets/Images/Home.PNG').default} alt="cannot display"/></Link><Link to="/" style={{ textDecoration: 'none' }}><p id="logoutButton">Logout</p></Link></div>
     <div id="trackDiv">
-        <div id="trackPicture">
-            <img className="trackImage" src= {require('../Assets/Images/FlowerBoy.jpg').default} alt="cannot display"/>
+        <br/>
+        <div id="player">
+            <h4 id="trackInfo">You're listening <br/> to K-pop</h4>
             <br/>
-        </div>
-        <div id="trackGenre">
-            <span>User's Name.</span><br/>
-            <span>You're listening</span><br/>
-            <span>to hip-hop.</span>
-        </div>
-        <div id="trackInfo">
-            <span>Track Name</span><br/>
-            <span>Artist</span><br/>
-            <span>Album</span><br/>
-            <span>
-                <Button variant='contained' color='secondary'>X</Button>
-                <Button variant='contained' color ='primary'>/</Button>
+            <iframe id="playerContainer" src="https://open.spotify.com/embed/playlist/37i9dQZF1DX8NzI27ip7J0" width="100%" height="80" frameBorder="0" allowtransparency="true" allow="encrypted-media"></iframe>
+            <span style={{marginLeft:"5%"}}>
+                <Button variant='contained' color='secondary'>Dislike</Button>
+                <Button variant='contained' color ='primary'>Like</Button>
             </span>
-        </div>
+        </div> 
     </div>  
     </div>
     );

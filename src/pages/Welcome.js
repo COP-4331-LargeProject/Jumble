@@ -6,7 +6,7 @@ function Welcome() {
       <div id="welcomeDiv">
         <span id="welcomeBody">
             <span className="welcomeText">Jumble</span><br/>
-            <span id="welcomeSubText">Find the perfect songs for your {"\n"} mood on Jumble.</span>
+            <span id="welcomeSubText">Find the perfect songs for your <br/> mood on Jumble.</span>
         </span>
     </div>
   );
