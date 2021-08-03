@@ -7,7 +7,21 @@ import SingleSong from "./SingleSong";
 
 const SongList = () => {
     // Replace with array of songs passed from the backend
-    const Songs = [<SingleSong/>,<SingleSong/>,<SingleSong/>]
+    const showDislike = async (event) =>  {
+
+      const res = await fetch('/api/liked_tracks', { //do i need res?
+          method: 'GET',
+          headers: {
+              'Content-Type': 'application/json',
+              'Accept': 'application/json' 
+          },
+      })
+  
+      .then(res => res.json()) 
+      .catch(error => console.log(error))
+  } 
+
+    const Songs = [showDislike]
   return ( 
     <div id="songListdiv">
         {
@@ -16,5 +30,4 @@ const SongList = () => {
     </div>
   );
 };
-
 export default SongList;

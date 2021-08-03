@@ -7,15 +7,13 @@ const SingleSong = () => {
     return (
         <div id="singleSong">
         <span className="songBox">
-            <span>
-                *Play*
-            </span>
-            <div>
+            
+            <img className="playlistImg" src= {require('../Assets/Images/playGray.png').default} alt="cannot display"/>
+            
                 Artist
-            </div>
-            <div>
+          
                 Song Name
-            </div>
+            
             <span>Time</span>
         </span>
     </div>
