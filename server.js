@@ -3,7 +3,7 @@
 var express = require('express'); // Express web server framework 
 var request = require('request'); // "Request" library
 var cors = require('cors');
-var querystring = require('querystring');
+var querystring = require('querystring'); 
 const { curly } = require("node-libcurl");
 const bcrypt = require('bcryptjs');
 const crypt = require('crypto');
@@ -82,7 +82,7 @@ app.post('/api/delete', async (req, res, next) =>
     if (err) { throw err; }
     else {
      var collection = db.collection("users");
-     collection.deleteMany({first_name: "test3"},  function(err,doc) {
+     collection.deleteMany({first_name: "Timothy"},  function(err,doc) {
        if (err) { throw err; }
        else { 
          console.log("Deleted"); 
@@ -123,10 +123,10 @@ app.post('/api/testing', async (req, res) =>
 
         console.log("Found the following records");
         console.log(JSON.stringify(docs, null, 4));
+        res.send();
       });
     }
 });
-
 
 ////Register API
 
@@ -188,7 +188,9 @@ app.post('/api/register', async (req, res) =>
               //ret = { error: error, id: results[0]._id};
               //console.log(ret);
 
-              const verifyURL = `${req.protocol}://${req.get('host')}/api/resetPassword/${unencryptedVerify}`;
+              const verifyURL = `${req.protocol}://${req.get('host')}`;
+              ///api/login`;
+              ///resetPassword/${unencryptedVerify}`;
               var Options = {email, unencryptedVerify, verifyURL};
               sendVerify(Options);
               
@@ -223,8 +225,8 @@ const sendVerify = async verifyOptions =>
     from: '"Password Recovery" <jumble-password-recovery@outlook.com>',
     to: verifyOptions.email,
     subject: 'Account Verification',
-    text: `Just created a new account? Verify it now! \n\nUse the code below to verify your new account. Enter this code and your email onto the verification page\n\n${verifyOptions.verifyURL}`,
-    html: '<h1>Just created a new account? Verify it now!</h1><p> Use the code below to verify your new account. Enter this code and your email onto the verification page</p><a href="verifyOptions.verifyURL">Will redirect you to verification page!</a>'
+    text: `Just created a new account? Verify it now! \n\nFollow the link below to verify your new account and log in.\n\n${verifyOptions.verifyURL}`,
+    //html: '<h1>Just created a new account? Verify it now!</h1><p> Follow the link below to verify your new account and log in.</p><a href="verifyOptions.verifyURL">Will redirect you to login page!</a>'
   };
 
   // Send email
@@ -242,7 +244,7 @@ app.post('/api/accountVerification/:verification', async (req, res, next) =>
 {
   // Find user via email and token
   const {email} = req.body;
-  const db = client.db();  
+  const db = client.db(dbName);   
   const verifyToken = crypt.createHash('sha256').update(req.params.verification).digest('hex');
   const verifyUserEmail = await db.collection('users').findOne({email:email, verify_token:verifyToken});
   if (!verifyUserEmail)
@@ -294,26 +296,31 @@ app.post('/api/login', async (req, res) =>
       // Find some documents
       const user = db.collection('users').find({"email": email}).toArray(async function(err, results)
       {
-        console.log("Found the following records");
 
         if(results.length > 0){
             
-          pass = results[0].passwordHash;
-          const cmp = await bcrypt.compare(req.body.password, pass);
-            if (cmp) {
-        //   ..... further code to maintain authentication like jwt or sessions
+          //Grab the password from database
+          pass = results[0].password;
+          
+              const validPassword = await bcrypt.compare(password, pass);  
+  
+                if(!results[0].verify_token)
+                {
+                  return res.status(401).json({errorMessage: "Unverified Account"});;
+                }
                 
-            // res.send("Auth Successful");
-
-              res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
-              res.send("Data added to cookie");
-            } else {
-            
-                return res.status(401).json({errorMessage: "Wrong email and password"});
-            }  
-          //res.status(200).json(ret);
+                if(validPassword){
+                  res.cookie("user_id", results[0]._id, {expire: 86400000 + Date.now()});
+                  res.send("Data added to cookie");
+                }
+              
+              else {
+                  //Email was found, but password did not match
+                  return res.status(401).json({errorMessage: "Wrong password"});
+              }  
         }
         else{
+            //Email was not found
             return res.status(401).json({errorMessage: "Wrong email and password"});
         }
 
@@ -322,8 +329,6 @@ app.post('/api/login', async (req, res) =>
     }
     
 });
-
-
 
 
 ////Logout API
@@ -353,7 +358,7 @@ var generateRandomString = function(length) {
 
 var stateKey = 'spotify_auth_state';
 
-app.get('/spotify', function(req, res) {
+app.get('/api/spotify', function(req, res) {
     
     var state = generateRandomString(16);
     res.cookie(stateKey, state);
@@ -427,7 +432,8 @@ app.get('/spotify', function(req, res) {
             else {
              var collection = db.collection("users");
              
-             console.log(req.cookies);
+             console.log(req.cookies.user_id);
+             user_id = req.cookies.user_id;
              console.log("Before redirect"); 
              
              
@@ -436,7 +442,7 @@ app.get('/spotify', function(req, res) {
              
              
              //Store access and refresh token, finding use by using _id cookie
-             collection.findOneAndUpdate({user_id: ObjectId("60fabb28c25a6e8275697eb9")}, {$set: {"access_token": access_token, "refresh_token": refresh_token }},  function(err,doc) {
+             collection.findOneAndUpdate({"_id": ObjectId(user_id)}, {$set: {"access_token": access_token, "refresh_token": refresh_token }},  function(err,doc) {
                if (err) { 
 
 
@@ -446,6 +452,8 @@ app.get('/spotify', function(req, res) {
                else { 
                   console.log("Updated"); 
                   
+                  console.log(doc);
+                  
                   
             //-------------------------------------------------------COOKIE PROBLEM HERE---------------------------------------------------------------------
             //These are not sending cookies back to our Front End
@@ -453,7 +461,7 @@ app.get('/spotify', function(req, res) {
                   //Send Access and refresh token to front end as cookies
                   res.cookie("access_token", access_token, {expire: 86400000 + Date.now()});
                   res.cookie("refresh_token", refresh_token, {expire: 86400000 + Date.now()});
-                  res.send("Data added to access and refresh token cookies")
+                  res.redirect('/#/Dashboard');
                 }
              });  
            } 
@@ -530,7 +538,7 @@ app.get('/spotify', function(req, res) {
              var collection = db.collection("users");
 
              //Update Access Token
-             collection.findOneAndUpdate({user_id: ObjectId(userID)}, {$set: {"access_token": access_token}},  function(err,doc) {
+             collection.findOneAndUpdate({"_id": ObjectId(userID)}, {$set: {"access_token": access_token}},  function(err,doc) {
                if (err) { 
                  throw err; 
                 }
@@ -554,6 +562,7 @@ app.get('/spotify', function(req, res) {
       type: string. Must be exactly "track" or "artist"
       query: string
       access_token: provided by cookie
+      example: /spotify/search/track/Ocean Man
   */
   app.get('/spotify/search/:type/:query', async (req, res) =>
   {
@@ -608,6 +617,7 @@ app.get('/spotify', function(req, res) {
       user_id, ObjectID
       genre_id: string
       access_token: provided by cookie
+      example: /spotify/recommendation/4342423/rock
   */
   app.get('/spotify/recommendation/:user_id/:genre_id', async (req, res) =>
   {
@@ -741,27 +751,27 @@ app.get('/spotify', function(req, res) {
   
     const insert = function(genre_id, genre_name, sample_artists, sample_tracks, db, user_id)
     {
-    
     var ObjectId = require('mongodb').ObjectID;
-  
+
       // Find if the genre exists for the user
-      db.collection('genres').find({"genre_id": genre_id, "user_id":ObjectId(user_id) }).toArray(function(err, results)
+      db.collection('genres').find({"user_id":ObjectId(user_id) }).toArray(function(err, results)
       {
       
-        if(results.length > 0){
+        if(results.length > 0){ 
   
           console.log("The genre already exists for this user");
   
-          //db.collection('genres').findOneAndUpdate({"genre_id": genre_id, "user_id":ObjectId(user_id) }, {$push: {"sample_artists": sample_artists, "sample_tracks": sample_tracks}},  function(err,doc) {
-            //if (err) { 
-            //  throw err; 
-            //}
+          db.collection('genres').findOneAndUpdate({"user_id":ObjectId(user_id)}, {$set: {"genre_id": genre_id, "genre_name": genre_name, "sample_artists": sample_artists, "sample_tracks": sample_tracks}},  function(err,doc) {
+            if (err) { 
+              throw err; 
+              res.status(401).json(err); 
+            }
   
-            //else { 
-            //  console.log("Updated"); 
-            // res.status(200).json("Tracks has been added to user's genre"); 
-            //}
-          //});  
+            else { 
+              console.log("Updated"); 
+             res.status(200).json("Tracks has been added to user's genre"); 
+            }
+          });  
   
         }
   
@@ -854,7 +864,7 @@ app.get('/spotify', function(req, res) {
   });
   
     ////Dislike API
-  
+
   app.post('/api/dislike', async (req, res) => 
   {
     client.connect (function(err)
@@ -1108,8 +1118,9 @@ app.get('/spotify', function(req, res) {
       from: '"Password Recovery" <jumble-password-recovery@outlook.com>',
       to: Options.userEmail,
       subject: 'Forgotten Password? Reset it now',
-      text: `Forgot your password? Follow the link below to reset the password.\nIf you did not desire to reset the password, then please disregard this email.`,
-      html: '<h1>Forgot your password? </h1><p Follow the link below to reset the password.</p><p> Link will only be valid for 10 minutes</p> <a href="Options.resetURL">Will redirect you to password reset page</a> '
+      text: `Forgot your password? Follow the link below to reset the password.\nIf you did not desire to reset the password, then please disregard this email.\n\n${Options.resetURL}`,
+      //text: `Just created a new account? Verify it now! \n\nFollow the link below to verify your new account and log in.\n\n${Options.resetURL}`,
+      //html: '<h1>Forgot your password? </h1><p Follow the link below to reset the password.</p><p> Link will only be valid for 10 minutes</p> <a href="Options.resetURL">Will redirect you to password reset page</a> '
     };
   
     // Send email
@@ -1151,8 +1162,10 @@ app.get('/spotify', function(req, res) {
     // Log user in
   });
 
+app.use(express.static(path.resolve(__dirname, 'frontend', 'build')));
+
 app.get('/', function (req, res) {
-  res.sendFile('index.html', { root: __dirname });
+  res.sendFile(path.resolve(__dirname, 'frontend', 'build', 'index.html'));
 });
 
 console.log('Server listening on port ' + PORT)
