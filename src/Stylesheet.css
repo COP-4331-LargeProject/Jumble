@@ -102,12 +102,23 @@
 #signUpBody {
   display: flex;
   flex-direction: column;
-  height: auto;
-  width: auto;
   padding-top: 5%;
   align-items: center;
   justify-content: center;
-  opacity: 70%;
+}
+
+#signupDiv {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+#signUpBoxes {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 #signUpTextInput {
@@ -146,9 +157,16 @@
   color: #000000;
 }
 
+#signUpButtonTextPop {
+  font: normal normal 300 19px/25px Roboto;
+  letter-spacing: 0px;
+  color: white;
+}
+
 #signUpLink {
   text-decoration: "none";
   color: #163f74 !important;
+  font-weight: bold;
 }
 
 #signUpText {
@@ -209,6 +227,7 @@
 #resetButton {
   font-family: "Roboto";
   color: white;
+  margin-top: 1%;
   background: #605cff 0% 0% no-repeat padding-box;
   top: 579px;
   left: 1177px;
@@ -222,7 +241,7 @@
 #logoutButton {
   text-align: right;
   margin-top: 7%;
-  margin-right: 17%;
+  margin-right: 30%;
   font: normal normal bold 25px/30px "Moon 2.0 Bold";
   letter-spacing: 0px;
   color: #000000;
@@ -285,12 +304,16 @@
   opacity: 1;
 }
 
-#categoryList {
+#categorList {
   display: flex;
   flex-direction: row;
   text-align: center;
   justify-content: center;
   align-items: center;
+}
+
+#categoryList {
+  width: 50px;
 }
 
 #playlistDiv {
@@ -308,13 +331,21 @@
   margin-right: 0.5%;
 }
 
-#listItems {
+.listItems {
   padding: 10px;
   margin-left: 0.5%;
   margin-right: 0.5%;
   background: #ffffff 0% 0% no-repeat padding-box;
-  box-shadow: 0px 0px 14px #00000029;
   border-radius: 30px;
+  width: 80%;
+  height: 80%;
+}
+
+#genres {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 5%;
 }
 
 #playlistHeader {
@@ -330,18 +361,56 @@
   opacity: 1;
 }
 
-.trackImage {
+#verifyImage {
+  width: 30%;
+}
+
+#passwordImage {
+  width: 30%;
+  margin-bottom: -5%;
+}
+
+#emailImage {
+  width: 30%;
+}
+
+#signupImage {
+  width: 30%;
+}
+
+.signupBox {
+  padding: 10px;
+  margin: 5px;
+  top: 579px;
+  left: 1177px;
+  width: 440px;
+  height: 30px;
+  border: 1px solid #707070;
+  border-radius: 8px;
+  font-size: 20px;
+  font-size: 30px;
+  font-family: "Roboto";
+}
+
+#trackImage {
+  margin-top: 1%;
   border-radius: 20px;
   width: 30%;
-  height: 30%;
+  margin-right: -8%;
+  margin-left: 15%;
 }
 
 #trackDiv {
   text-align: center;
-  display: block;
+  display: flex;
+  flex-direction: row;
   justify-content: center;
   align-items: center;
   margin: auto;
+}
+
+#trackImg {
+  display: block;
 }
 
 .popup {
@@ -354,6 +423,33 @@
   display: flex;
   justify-content: center;
   align-items: center;
+}
+
+#player {
+  margin-top: 5%;
+  flex-direction: column;
+}
+
+#playerContainer {
+  width: 100%;
+  padding: 15%;
+  margin-left: -10%;
+  background-color: #605cff;
+  border-radius: 5px;
+}
+
+#trackInfo {
+  padding: 16%;
+  background-color: white;
+  margin-left: 25%;
+  margin-right: 25%;
+  border-radius: 10px;
+  margin-bottom: -2%;
+  width: 100px;
+  margin-top: 5%;
+  font-size: 20pt;
+  font-family: "Roboto";
+  box-shadow: 0px 0px 14px #00000029;
 }
 
 .popup-inner {
@@ -375,19 +471,102 @@
 }
 
 #singleSong {
+  display: flex;
+  flex-direction: row;
   background-color: white;
   padding: 20px;
   color: #000000;
   align-items: center;
-  width: 600px;
+  box-shadow: 0px 0px 14px #00000029;
 }
 
 #songListdiv {
   display: flex;
   flex-direction: column;
   align-items: center;
+  height: 380px;
+  width: 600px;
   margin-left: 5%;
+  overflow-y: "scroll";
+  overflow-x: hidden;
+  -ms-overflow-style: none;
+  /* for Internet Explorer, Edge */
+  scrollbar-width: none;
+  /* for Firefox */
 }
 
-.songBox {
+#songListdiv::-webkit-scrollbar {
+  display: none;
+  /* for Chrome, Safari, and Opera */
+}
+
+.dislikedDiv {
+  margin-top: 40px;
+  padding: 5%;
+  padding-bottom: 10%;
+  margin-left: 25%;
+  margin-right: 20%;
+  background-color: white;
+  border-radius: 34px;
+}
+
+#dislikedScrollDiv {
+  margin-top: 5%;
+}
+
+#passwordHeader {
+  font-size: 40px;
+  font-family: "Moon 2.0 Regular";
+}
+
+#passwordText {
+  color: #848484;
+  font: normal normal 300 20px/30px Roboto;
+  text-align: center;
+}
+
+#emailHeader {
+  font-size: 40px;
+  font-family: "Moon 2.0 Regular";
+  letter-spacing: 0px;
+}
+
+#emailText {
+  color: #848484;
+  font: normal normal 300 20px/30px Roboto;
+  text-align: center;
+}
+
+#resendText {
+  font-size: 18px/24px;
+  font-weight: bold;
+  font-family: "Roboto";
+}
+
+#verifyHeader {
+  font-size: 35px;
+  font-family: "Moon 2.0 Regular";
+  letter-spacing: 0px;
+}
+
+#verifyText {
+  color: #848484;
+  font: normal normal 300 20px/30px Roboto;
+  text-align: center;
+}
+
+#homeImage {
+  width: 30px;
+  margin-left: 16%;
+  margin-top: 5%;
+}
+
+#homeStyle {
+  margin-left: 16%;
+  margin-top: 5%;
+}
+
+.playlistImg {
+  width: 10%;
+  height: 10%;
 }

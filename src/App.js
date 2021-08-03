@@ -5,20 +5,20 @@
 
 import React from "react";
 import LoginPage from "./pages/LoginPage";
-import { BrowserRouter as Router, Route, Link, Switch } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Link, Switch, HashRouter } from 'react-router-dom';
 import SignUpPage from "./pages/SignUpPage";
 import Genre from "./pages/Genre";
 import Track from "./pages/Track";
 import LikedSongs from "./pages/LikedSongs";
 import DislikedSongs from "./pages/DislikedSongs";
+import { createBrowserHistory } from "history";
 
 function App() {
   return (
-    <Router> 
+    <HashRouter history={createBrowserHistory()}> 
       <div>
         <Switch>
         <Route path="/" exact component={LoginPage}/>
-        <Route path="/Login" component={LoginPage}/>
         <Route path="/SignUp" component={SignUpPage}/>
         <Route path="/Dashboard" component={Genre}/>
         <Route path="/Track" component={Track}/>
@@ -26,7 +26,7 @@ function App() {
         <Route path="/DislikedSongs" component={DislikedSongs}/>
         </Switch>
       </div>
-    </Router>
+    </HashRouter>
   );
 }
 export default App;
