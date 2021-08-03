@@ -19,7 +19,7 @@ async function login() {
 
     if (res.ok) {
         console.log('Success')
-        window.location.replace('/') //match url
+        window.location.replace('/Dashboard') //match url
     } else {
         console.log('Incorrect username/password')
     }
