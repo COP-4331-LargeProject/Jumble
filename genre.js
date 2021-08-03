@@ -5,8 +5,8 @@ async function genre() {
     const track_input = document.querySelector('search_track').value //match frontend
     const genre_name = document.getElementsByName('Categories').value //match frontend
     const genre_id = document.getElementById('Categories').value //match frontend
-
-    const sample_artists = await fetch('/spotify/search/:artist/:artist_input', { //match api ?
+    
+    const sample_artists = await fetch('/spotify/search/artist/'+artist_input, { //match api
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -16,7 +16,7 @@ async function genre() {
     .then(res => res.json()) 
     .catch(error => console.log(error))
 
-    const sample_tracks = await fetch('/spotify/search/:track/:track_input', { //match api ?
+    const sample_tracks = await fetch('/spotify/search/track/'+track_input, { //match api
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
@@ -27,7 +27,6 @@ async function genre() {
     .catch(error => console.log(error))
 
     
-
     const genre_data = {
         genre_id: genre_id,
         genre_name: genre_name,
@@ -50,7 +49,7 @@ async function getTrack() {
 
     const genre_id = document.getElementById('Categories').value //match frontend
 
-    const res = await fetch('/spotify/recommendation/:user_id/:genre_id', { //match api
+    const res = await fetch('/spotify/recommendation/'+user_id+'/'+genre_id, { //pull genre
         method: 'GET',
         headers: {
             'Content-Type': 'application/json',
